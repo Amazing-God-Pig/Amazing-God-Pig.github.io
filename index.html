@@ -1,10 +1,36 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>TEST</title>
+  <title>感測器資料顯示</title>
 </head>
 <body>
-  <h1>測試成功！</h1>
+  <h1>感測器即時資料</h1>
+  <p id="data">載入中...</p>
+
+  <script>
+    async function fetchData() {
+      try {
+        const response = await fetch("http://192.168.4.1/"); // ← 改成你的 ESP-01 IP
+        const text = await response.text();
+
+        // 解析資料
+        const parts = text.trim().split(",");
+        let output = "";
+        parts.forEach(pair => {
+          const [key, val] = pair.split("=");
+          output += `${key}: ${val}<br>`;
+        });
+
+        document.getElementById("data").innerHTML = output;
+      } catch (e) {
+        document.getElementById("data").innerText = "取得資料失敗";
+      }
+    }
+
+    // 每 2 秒自動更新資料
+    setInterval(fetchData, 2000);
+    fetchData();
+  </script>
 </body>
 </html>
