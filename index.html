@@ -1,36 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>感測器資料顯示</title>
+  <title>感測器資料監控頁面</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2f2f2;
+      text-align: center;
+      padding: 2em;
+    }
+    h1 {
+      color: #333;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 1em 2em;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 1em;
+    }
+    .label {
+      font-weight: bold;
+      color: #666;
+    }
+    .value {
+      font-size: 2em;
+      color: #007bff;
+    }
+  </style>
 </head>
 <body>
-  <h1>感測器即時資料</h1>
-  <p id="data">載入中...</p>
+  <h1>感測器資料即時顯示</h1>
+  <div class="card">
+    <div class="label">溫度</div>
+    <div class="value" id="temp">--</div>
+  </div>
+  <div class="card">
+    <div class="label">濕度</div>
+    <div class="value" id="hum">--</div>
+  </div>
+  <div class="card">
+    <div class="label">震動</div>
+    <div class="value" id="vib">--</div>
+  </div>
+  <div class="card">
+    <div class="label">傾斜</div>
+    <div class="value" id="tilt">--</div>
+  </div>
 
   <script>
-    async function fetchData() {
+    async function fetchSensorData() {
       try {
-        const response = await fetch("http://192.168.4.1/"); // ← 改成你的 ESP-01 IP
+        const response = await fetch("http://192.168.4.1/"); // 請改為你的 ESP-01 IP
         const text = await response.text();
-
-        // 解析資料
         const parts = text.trim().split(",");
-        let output = "";
-        parts.forEach(pair => {
-          const [key, val] = pair.split("=");
-          output += `${key}: ${val}<br>`;
+
+        const data = {};
+        parts.forEach(p => {
+          const [key, val] = p.split("=");
+          data[key] = val;
         });
 
-        document.getElementById("data").innerHTML = output;
+        document.getElementById("temp").textContent = data.TEMP || "--";
+        document.getElementById("hum").textContent = data.HUM || "--";
+        document.getElementById("vib").textContent = data.VIB == "0" ? "有" : "無";
+        document.getElementById("tilt").textContent = data.TILT == "1" ? "傾斜" : "正常";
       } catch (e) {
-        document.getElementById("data").innerText = "取得資料失敗";
+        document.getElementById("temp").textContent = "Err";
+        document.getElementById("hum").textContent = "Err";
+        document.getElementById("vib").textContent = "Err";
+        document.getElementById("tilt").textContent = "Err";
       }
     }
 
-    // 每 2 秒自動更新資料
-    setInterval(fetchData, 2000);
-    fetchData();
+    setInterval(fetchSensorData, 2000);
+    fetchSensorData();
   </script>
 </body>
 </html>
